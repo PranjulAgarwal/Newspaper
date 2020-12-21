@@ -3,7 +3,6 @@ package com.example.newspaper.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import javax.xml.transform.Source;
 
 public class Article {
     @SerializedName("source")
@@ -32,7 +31,7 @@ public class Article {
 
     @SerializedName("publishedAt")
     @Expose
-    private String publishAt;
+    private String publishedAt;
 
     public Source getSource() {
         return source;
@@ -82,12 +81,12 @@ public class Article {
         this.urlToImage = urlToImage;
     }
 
-    public String getPublishAt() {
-        return publishAt;
+    public String getPublishedAt() {
+        return publishedAt;
     }
 
-    public void setPublishAt(String publishAt) {
-        this.publishAt = publishAt;
+    public void setPublishedAt(String publishedAt) {
+        this.publishedAt = publishedAt;
     }
 }
 
