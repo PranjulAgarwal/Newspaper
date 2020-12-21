@@ -5,8 +5,13 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import androidx.appcompat.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.newspaper.api.ApiClient;
@@ -38,16 +43,22 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setNestedScrollingEnabled(false);
 
-        LoadJSON();
+        LoadJSON("");
 
     }
 
-    public void LoadJSON(){
+    public void LoadJSON(final String keyword){
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         String country = Utils.getCountry();
+        String language = Utils.getLanguage();
 
         Call<News> call;
-        call = apiInterface.getNews(country, API_KEY);
+
+        if(keyword.length() > 0){
+            call = apiInterface.getNewsSearch(keyword, language, "publishedAt", API_KEY);
+        }else{
+            call = apiInterface.getNews(country, API_KEY);
+        }
 
         call.enqueue(new Callback<News>() {
             @Override
@@ -57,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
                         articles.clear();
                     }
                     articles = response.body().getArticle();
-                    Log.e("","Artcile" + articles.size());
                     adapter = new Adapter(articles, getApplicationContext());
                     recyclerView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
@@ -73,5 +83,37 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        MenuItem searchMenuItem = menu.findItem(R.id.action_search);
+
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setQueryHint("Search News");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if(query.length() > 2){
+                    LoadJSON(query);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                LoadJSON(newText);
+                return false;
+            }
+        });
+
+        searchMenuItem.getIcon().setVisible(false, false);
+
+        return true;
     }
 }
