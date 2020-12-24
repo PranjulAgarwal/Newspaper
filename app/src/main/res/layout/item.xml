@@ -26,14 +26,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:scaleType="centerCrop"
-                tools:ignore="UnusedAttribute" />
+                tools:ignore="UnusedAttribute"
+                android:contentDescription="@string/todo" />
 
             <ImageView
                 android:id="@+id/shadow_bottom"
                 android:src="@drawable/bottom_shadow"
                 android:layout_alignBottom="@id/img"
                 android:layout_width="match_parent"
-                android:layout_height="80dp" />
+                android:layout_height="80dp"
+                android:contentDescription="@string/todo" />
 
             <ProgressBar
                 android:id="@+id/progress_load_photo"
@@ -56,9 +58,10 @@
                 android:gravity="bottom"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="Author"
+                android:text="@string/author"
                 android:textColor="@color/white"
-                android:textStyle="italic" />
+                android:textStyle="italic"
+                android:layout_marginEnd="160dp" />
 
 
             <FrameLayout
@@ -70,14 +73,17 @@
                 android:layout_marginTop="-40dp"
                 android:layout_marginRight="19dp"
                 android:background="@drawable/round_white"
-                android:padding="5dp">
+                android:padding="5dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="19dp">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:src="@drawable/ic_date" />
+                    android:src="@drawable/ic_date"
+                    android:contentDescription="@string/todo" />
 
                 <TextView
                     android:id="@+id/publishedAt"
@@ -85,8 +91,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="27dp"
                     android:layout_marginRight="10dp"
-                    android:text="01 January 1990"
-                    android:textColor="#606060" />
+                    android:text="@string/_01_january_1990"
+                    android:textColor="#606060"
+                    android:layout_marginStart="27dp"
+                    android:layout_marginEnd="10dp" />
 
 
             </FrameLayout>
@@ -100,7 +108,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginRight="16dp"
                 android:fontFamily="@font/roboto_bold"
-                android:text="Title"
+                android:text="@string/title"
                 android:textColor="@color/colorTextTitle"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -115,7 +123,7 @@
                 android:layout_marginTop="5dp"
                 android:layout_marginRight="16dp"
                 android:fontFamily="sans-serif"
-                android:text="Desc" />
+                android:text="@string/desc" />
 
             <TextView
                 android:id="@+id/source"
@@ -129,9 +137,10 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="Source"
+                android:text="@string/source"
                 android:textColor="@color/colorTextTitle"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:layout_marginStart="16dp" />
 
 
             <TextView
@@ -146,7 +155,8 @@
                 android:drawablePadding="10dp"
                 android:singleLine="true"
                 android:ellipsize="end"
-                android:text="Time" />
+                android:text="@string/time"
+                android:layout_toEndOf="@id/source" />
 
 
         </RelativeLayout>
