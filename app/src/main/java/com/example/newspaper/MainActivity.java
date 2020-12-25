@@ -1,15 +1,21 @@
 package com.example.newspaper;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -17,6 +23,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -107,10 +114,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void initListener(){
-        adapter.setOnItemClickListener((new Adapter.OnItemClickListener() {
+
+        adapter.setOnItemClickListener(new Adapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Intent intent = new Intent (MainActivity.this, NewsDetailActivity.class);
+                ImageView imageView = view.findViewById(R.id.img);
+                Intent intent = new Intent(MainActivity.this, NewsDetailActivity.class);
 
                 Article article = articles.get(position);
                 intent.putExtra("url", article.getUrl());
@@ -120,9 +129,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 intent.putExtra("source",  article.getSource().getName());
                 intent.putExtra("author",  article.getAuthor());
 
-                startActivity(intent);
+                Pair<View, String> pair = Pair.create((View)imageView, ViewCompat.getTransitionName(imageView));
+                ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this);
+
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    startActivity(intent, optionsCompat.toBundle());
+                }else {
+                    startActivity(intent);
+                }
+
             }
-        }));
+        });
+
     }
 
     @Override
