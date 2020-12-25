@@ -7,9 +7,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.ActivityOptions;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -23,7 +20,9 @@ import androidx.appcompat.widget.SearchView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +31,6 @@ import com.example.newspaper.api.ApiInterface;
 import com.example.newspaper.models.Article;
 import com.example.newspaper.models.News;
 
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,11 +43,17 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     public static final String API_KEY = "0e2643e115494783a091afb9b732602a";
     private RecyclerView recyclerView;
+    private RecyclerView.LayoutManager layoutManager;
     private List<Article> articles = new ArrayList<>();
     private Adapter adapter;
     private String TAG = MainActivity.class.getSimpleName();
+    private TextView topHeadline;
     private SwipeRefreshLayout swipeRefreshLayout;
-    @SuppressLint("ResourceAsColor")
+    private RelativeLayout errorLayout;
+    private ImageView errorImage;
+    private TextView errorTitle, errorMessage;
+    private Button btnRetry;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,29 +61,40 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setColorSchemeColors(R.color.colorAccent);
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
 
-        recyclerView  = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        topHeadline = findViewById(R.id.topheadlines);
+        recyclerView = findViewById(R.id.recyclerView);
+        layoutManager = new LinearLayoutManager(MainActivity.this);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setNestedScrollingEnabled(false);
 
         onLoadingSwipeRefresh("");
 
+        errorLayout = findViewById(R.id.errorLayout);
+        errorImage = findViewById(R.id.errorImage);
+        errorTitle = findViewById(R.id.errorTitle);
+        errorMessage = findViewById(R.id.errorMessage);
+        btnRetry = findViewById(R.id.btnRetry);
+
     }
 
-    public void LoadJSON(final String keyword){
+    public void LoadJson(final String keyword){
+
+        errorLayout.setVisibility(View.GONE);
         swipeRefreshLayout.setRefreshing(true);
 
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
+
         String country = Utils.getCountry();
         String language = Utils.getLanguage();
 
         Call<News> call;
 
-        if(keyword.length() > 0){
+        if (keyword.length() > 0 ){
             call = apiInterface.getNewsSearch(keyword, language, "publishedAt", API_KEY);
-        }else{
+        } else {
             call = apiInterface.getNews(country, API_KEY);
         }
 
@@ -87,31 +102,63 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             @Override
             public void onResponse(Call<News> call, Response<News> response) {
                 if (response.isSuccessful() && response.body().getArticle() != null){
-                    if(!articles.isEmpty()){
+
+                    if (!articles.isEmpty()){
                         articles.clear();
                     }
+
                     articles = response.body().getArticle();
-                    adapter = new Adapter(articles, getApplicationContext());
+                    adapter = new Adapter(articles, MainActivity.this);
                     recyclerView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
 
                     initListener();
 
+                    topHeadline.setVisibility(View.VISIBLE);
                     swipeRefreshLayout.setRefreshing(false);
 
-                }
-                else{
+
+                } else {
+
+                    topHeadline.setVisibility(View.INVISIBLE);
                     swipeRefreshLayout.setRefreshing(false);
-                    Toast.makeText(MainActivity.this, "No Result", Toast.LENGTH_SHORT).show();
+
+                    String errorCode;
+                    switch (response.code()) {
+                        case 404:
+                            errorCode = "404 not found";
+                            break;
+                        case 500:
+                            errorCode = "500 server broken";
+                            break;
+                        default:
+                            errorCode = "unknown error";
+                            break;
+                    }
+
+                    showErrorMessage(
+                            R.drawable.no_result,
+                            "No Result",
+                            "Please Try Again!\n"+
+                                    errorCode);
+
                 }
             }
 
             @Override
             public void onFailure(Call<News> call, Throwable t) {
+                topHeadline.setVisibility(View.INVISIBLE);
                 swipeRefreshLayout.setRefreshing(false);
+                showErrorMessage(
+                        R.drawable.oops,
+                        "Oops..",
+                        "Network failure, Please Try Again\n");
             }
         });
+
     }
+
+
 
     private void initListener(){
 
@@ -130,7 +177,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 intent.putExtra("author",  article.getAuthor());
 
                 Pair<View, String> pair = Pair.create((View)imageView, ViewCompat.getTransitionName(imageView));
-                ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this);
+                ActivityOptionsCompat optionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        MainActivity.this
+                );
 
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -144,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -154,15 +204,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         MenuItem searchMenuItem = menu.findItem(R.id.action_search);
 
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setQueryHint("Search News");
+        searchView.setQueryHint("Search Latest News...");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if(query.length() > 2){
+                if (query.length() > 2){
                     onLoadingSwipeRefresh(query);
                 }
                 else {
-                    Toast.makeText(MainActivity.this,"Type more than two letters",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Type more than two letters!", Toast.LENGTH_SHORT).show();
                 }
                 return false;
             }
@@ -180,18 +230,40 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public void onRefresh() {
-        LoadJSON("");
+        LoadJson("");
     }
 
-    private void onLoadingSwipeRefresh(final String Keyword){
+    private void onLoadingSwipeRefresh(final String keyword){
 
         swipeRefreshLayout.post(
                 new Runnable() {
                     @Override
                     public void run() {
-                        LoadJSON(Keyword);
+                        LoadJson(keyword);
                     }
                 }
         );
+
     }
+
+    private void showErrorMessage(int imageView, String title, String message){
+
+        if (errorLayout.getVisibility() == View.GONE) {
+            errorLayout.setVisibility(View.VISIBLE);
+        }
+
+        errorImage.setImageResource(imageView);
+        errorTitle.setText(title);
+        errorMessage.setText(message);
+
+        btnRetry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLoadingSwipeRefresh("");
+            }
+        });
+
+    }
+
+
 }

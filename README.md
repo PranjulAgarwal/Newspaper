@@ -4,6 +4,10 @@
 Made this Android Application on Android Studio. Language used Java. It fetches latest News Articles.
 
 ---
+<h3 align="center"><b>Added Error Screen</b></h3>
+<img  src="./Screenshots/Screenshot_Cover_5.jpg" alt="Screenshot"/>
+
+---
 <h3 align="center"><b>Added News Share Feature</b></h3>
 <img  src="./Screenshots/Screenshot_Cover_4.jpg" alt="Screenshot"/>
 
